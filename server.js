@@ -37,7 +37,8 @@ app.post('/api/shorturl/new', async function (req, res){
     if(reqURL.startsWith("http://")){host = reqURL.slice(7)}
     else if(reqURL.startsWith("https://")){host = reqURL.slice(8)}
     let address = await dns.lookup(host, (err, address)=> err? console.log(err) : address);
-    if(address){
+    if(address.length){
+      res.json(address);
       const entry = await Short.findOne({original_url: reqURL});
       if(entry){
         const {original_url, short_url} = entry;
@@ -46,9 +47,8 @@ app.post('/api/shorturl/new', async function (req, res){
         let index = await Count.findOneAndUpdate({}, {$inc: {index: 1}},{new: true, useFindAndModify: false})
         let doc = new Short({original_url: reqURL, short_url: index.index});
         doc.save()
-        res.json({original_url: reqURL, short_url: index.index})
-        
-      }
+        res.json({original_url: reqURL, short_url: index.index})   
+     }
     } else {
       res.json({ error: 'invalid url' })
     }
