@@ -5,6 +5,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const dns = require('dns');
+const validURL = require('valid-url');
 // Basic Configuration
 const port = process.env.PORT || 3000;
 mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true});
@@ -33,12 +34,7 @@ app.get('/api/hello', function(req, res) {
 app.post('/api/shorturl/new', async function (req, res){
   try {
     const reqURL = req.body.url;
-    let host;
-    if(reqURL.startsWith("http://")){host = reqURL.slice(7)}
-    else if(reqURL.startsWith("https://")){host = reqURL.slice(8)}
-    let address = await dns.lookup(host, (err, address)=> err? console.log(err) : address);
-    if(address.length){
-      res.json(address);
+    if(validURL.isWebUri(reqURL)){
       const entry = await Short.findOne({original_url: reqURL});
       if(entry){
         const {original_url, short_url} = entry;
